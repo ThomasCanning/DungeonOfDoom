@@ -1,54 +1,70 @@
-import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
-public class Bot extends Player {
+public class Bot extends Player{
 
-    private char[][] currentVisibility;
-    private char[][] unhiddenMap;
-    private int[] mapDimensions;
+    private char[][] exploredMap;
+    private int goldRequiredToWin;
+
+    private Queue<String> commandsInQueue = new LinkedList<>();
 
     public Bot(Map mapObject) {
         super(mapObject);
-        createHiddenMap(mapObject);
+        exploredMap = mapObject.createHiddenMap();
     }
 
-    private void createHiddenMap(Map mapObject){
-        mapDimensions = mapObject.getMapDimensions();
-        unhiddenMap = new char[mapDimensions[0]][mapDimensions[1]];
-        for (char[] row: unhiddenMap)
-            Arrays.fill(row, '?');
-    }
+    public void takeTurn(Map mapObject){
 
-    public void takeTurn(Map mapObject, HumanPlayer humanPlayer){
-        if(this.steps==0&&5==6){
-            look(mapObject, humanPlayer);
-            steps++;
-            return;
+        /*
+        Logic behind bot:
+
+        Look for player, if player, find moves to player with A* and move to player, then look, repeat
+        If no player, look for gold, find moves to gold and collect
+        If no gold or player, continue exploring map until fully explored
+        If map fully explored, move between exits until finds player
+
+        */
+
+        //If there is a command in the queue, do it
+        if(!commandsInQueue.isEmpty()){
+            String command = commandsInQueue.remove();
+            switch (command){
+                case "HELLO":
+                    goldRequiredToWin = mapObject.getGoldRequiredToWin();
+                    break;
+                case "PICKUP":
+                    this.pickup(mapObject);
+                    break;
+                case "MOVE N":
+                case "MOVE E":
+                case "MOVE S":
+                case "MOVE W":
+                    //Direction of move comes from last character in command
+                    this.move(mapObject, command.charAt(command.length()-1));
+                    break;
+                case "LOOK":
+                    this.look(mapObject);
+                    break;
+                case "QUIT":
+                    mapObject.attemptQuit(this);
+                    break;
+            }
         }
-        System.out.println("Bot Look:");
-        this.look(mapObject, humanPlayer);
 
+        //Otherwise work out what to add to queue
+        else{
+
+        }
 
         steps++;
     }
 
     @Override
-    public void look(Map mapObject, HumanPlayer humanPlayer) {
-        char[][] mapUncoveredByLook = mapObject.createMapAroundPlayer(this);
-
-        for (int row = 0; row < 5; row++) {
-            for (int elementPos = 0; elementPos <5; elementPos++) {
-
-                //Iterates through each position in the 5x5 area surrounding bot and adds to the total uncovered map
-                unhiddenMap[this.playerPosition[0] - 2+row][this.playerPosition[1] - 2+elementPos] = mapUncoveredByLook[row][elementPos];
-            }
-        }
-        mapObject.printAroundPlayer(this);
-
+    public void look(Map mapObject) {
+        exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
     }
+
+    private int[] lookForInMap(char )
+
 }
 
-/*
-
-
-
- */

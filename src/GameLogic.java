@@ -6,17 +6,15 @@ public class GameLogic {
 
         //Scanner object used throughout for user input
         Scanner scanner = new Scanner(System.in);
-        /*Creates an instance of the map object which has methods to: allow user to
-        choose a map from a list of map files, stores map as 2d char array, print map,
-        randomise player start position.*/
-        Map mapObject = new Map();
 
         System.out.println("Welcome to Dungeon of Doom");
 
+        newGame(scanner);
+    }
 
-        /*Takes user input an assigns corresponding map from text file
-        as a 2d array to the map attribute of the mapObject.*/
-        mapObject.chooseMap();
+    //Code to create map and player objects then process commands enclosed in static method so a new game can be started after each game finishes
+    public static void newGame(Scanner scanner){
+        Map mapObject = new Map();
 
         //Instantiates human player, passing in a starting position on the map which is
         //randomly generated using a method called on mapObject class
@@ -25,9 +23,7 @@ public class GameLogic {
         Bot bot = new Bot(mapObject);
 
         //Starts recursive loop of getting and processing user commands
-        //???mapObject.map[humanPlayer.playerPosition[0]][humanPlayer.playerPosition[1]] = 'E';
         processCommand(scanner, mapObject, humanPlayer, bot);
-
     }
 
     //Function that takes in player input, player object and map, and processes user input according to rules
@@ -35,7 +31,7 @@ public class GameLogic {
         String command = scanner.nextLine().toUpperCase();
         switch (command) {
             case "HELLO":
-                humanPlayer.hello(mapObject);
+                System.out.println("Gold to win: "+humanPlayer.hello(mapObject));
                 break;
             case "GOLD":
                 humanPlayer.gold(humanPlayer);
@@ -51,24 +47,10 @@ public class GameLogic {
                 humanPlayer.move(mapObject, Character.toUpperCase(command.charAt(command.length() - 1)));
                 break;
             case "LOOK":
-                humanPlayer.look(mapObject, humanPlayer);
+                humanPlayer.look(mapObject);
                 break;
             case "QUIT":
-                //Checks if player current position is an exit and gold requirement reached
-                if (mapObject.map[humanPlayer.playerPosition[0]][humanPlayer.playerPosition[1]] == 'E' && humanPlayer.getGoldCollected() >= mapObject.getGoldRequiredToWin()) {
-                    System.out.println("WIN");
-                    System.out.println("Well done, you have won in " + humanPlayer.getSteps()+" steps");
-                    System.out.println("Play again? (Y/N)");
-
-                    //Player given choice to play again
-                    if(scanner.nextLine().equalsIgnoreCase("Y"))mapObject.chooseMap();
-                    else System.exit(0);
-                }
-                else {
-                    //If you attempt to quit without enough gold or in wrong spot, you lose and end game
-                    System.out.println("LOSE");
-                    System.exit(0);
-                }
+                humanPlayer.quit(mapObject, scanner);
                 break;
 
             default:
@@ -76,7 +58,7 @@ public class GameLogic {
         }
         humanPlayer.incrementSteps();
 
-        bot.takeTurn(mapObject, humanPlayer);
+        //bot.takeTurn(mapObject);
 
         //Continuously processes player input through recursion
         processCommand(scanner, mapObject, humanPlayer, bot);
