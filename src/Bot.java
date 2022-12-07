@@ -1,19 +1,27 @@
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
 
-public class Bot extends Player{
+public class Bot extends Player {
 
     private char[][] exploredMap;
     private int goldRequiredToWin;
 
-    private Queue<String> commandsInQueue = new LinkedList<>();
+    private AStarSearch search;
+
+    private ArrayList<String> commandsInQueue;
 
     public Bot(Map mapObject) {
         super(mapObject);
         exploredMap = mapObject.createHiddenMap();
+        search = new AStarSearch();
+        commandsInQueue = new ArrayList<>();
+        System.out.println(commandsInQueue.isEmpty());
     }
 
-    public void takeTurn(Map mapObject){
+    public void takeTurn(Map mapObject) {
+
+        System.out.println(commandsInQueue.isEmpty());
+
+        System.out.println("Bots turn:");
 
         /*
         Logic behind bot:
@@ -26,9 +34,11 @@ public class Bot extends Player{
         */
 
         //If there is a command in the queue, do it
-        if(!commandsInQueue.isEmpty()){
-            String command = commandsInQueue.remove();
-            switch (command){
+        if (!commandsInQueue.isEmpty()) {
+            System.out.println("commands are in queue");
+            String command = commandsInQueue.get(commandsInQueue.size()-1);
+            commandsInQueue.remove(commandsInQueue.size()-1);
+            switch (command) {
                 case "HELLO":
                     goldRequiredToWin = mapObject.getGoldRequiredToWin();
                     break;
@@ -40,7 +50,7 @@ public class Bot extends Player{
                 case "MOVE S":
                 case "MOVE W":
                     //Direction of move comes from last character in command
-                    this.move(mapObject, command.charAt(command.length()-1));
+                    this.move(mapObject, command.charAt(command.length() - 1));
                     break;
                 case "LOOK":
                     this.look(mapObject);
@@ -52,19 +62,39 @@ public class Bot extends Player{
         }
 
         //Otherwise work out what to add to queue
-        else{
+        else {
+            if (lookForItem('P') != null) {
+                System.out.println("looking for player");
+                commandsInQueue = search.GetPathTo(exploredMap, 'P');
+            }
+            else if (lookForItem('G') != null) {
+                System.out.println("looking for gold");
+                commandsInQueue = search.GetPathTo(exploredMap, 'G');
+            }
+            else{
+                this.look(mapObject);
+            }
 
+            steps++;
         }
-
-        steps++;
+        mapObject.printMap(mapObject.map);
     }
 
     @Override
-    public void look(Map mapObject) {
+    public void look (Map mapObject){
         exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
     }
 
-    private int[] lookForInMap(char )
+    private int[] lookForItem (char item){
+        for (int row = 0; row < exploredMap.length; row++) {
+            for (int elementPosition = 0; elementPosition < exploredMap[0].length; elementPosition++) {
+                if (exploredMap[row][elementPosition] == item) {
+                    return new int[]{row, elementPosition};
+                }
+            }
+        }
+        return null;
+    }
 
 }
 

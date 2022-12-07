@@ -3,14 +3,30 @@ import java.util.Collections;
 
 public class AStarSearch{
 
-    public void GetShortestDistanceTo(char[][] map, int[] startPosition, int[] endPosition){
+    public ArrayList GetPathTo(char[][] map, char target){
         //Creates an array list open nodes that represents the frontier of nodes being considered
         ArrayList<Node> openNodes =new ArrayList<>();
 
-        //Creates start and end node objects which have row and elementPosition attributes which act as coordinates
-        //and attributes relating to A* search
-        Node startNode = new Node(startPosition[0],startPosition[1]);
-        Node endNode = new Node(endPosition[0],endPosition[1]);
+        Node startNode = null;
+        Node endNode = null;
+
+        //Finds position of bot and target within map and creates start and end node objects
+        //which have row and elementPosition attributes and other attributes relating to A* search
+        for(int row=0; row< map.length;row++){
+            for(int elementPosition = 0; elementPosition<map[0].length;elementPosition++){
+                if(map[row][elementPosition]=='B'){
+                    startNode = new Node(row,elementPosition);
+                }
+                if(map[row][elementPosition]==target){
+                    endNode = new Node(row,elementPosition);
+                }
+            }
+        }
+
+        if(startNode==null || endNode==null){
+            System.out.println("returning null for bad start/end");
+            return null;
+        }
 
         //Adds start position as a node to open nodes
         openNodes.add(startNode);
@@ -22,6 +38,7 @@ public class AStarSearch{
         Node previousNode = null;
 
         while(openNodes.size()>0){ //Iteratively uses A* algorithm to find the shortest path between startPosition and endPosition
+            System.out.println("iterating A*");
             currentNode=openNodes.get(0);
 
             //Searches through open nodes for one with lowest f cost to assign as current node
@@ -40,8 +57,9 @@ public class AStarSearch{
             if(currentNode.row==endNode.row&&currentNode.elementPosition==endNode.elementPosition){
                 //What happens when reached end point
                 endNode.parent=previousNode;
-                ArrayList<Node> path = retracePath(startNode, previousNode);
-                return;
+                ArrayList<String> listOfMoves = retraceMoves(startNode, previousNode);
+                System.out.println("A* success?");
+                return listOfMoves;
             }
 
             //checks each neighbour of current node, ignoring walls and nodes on the closed list
@@ -50,24 +68,29 @@ public class AStarSearch{
                 //Finds cost of total current route to neighbour
                 int newCostToNeighbour = currentNode.gCost+getDistance(currentNode, neighbour);
 
+                if(neighbourInList(openNodes, neighbour) && newCostToNeighbour<neighbour.gCost){
+                    openNodes.remove(neighbour);
+                }
+
+                if(neighbourInList(closedNodes, neighbour) && newCostToNeighbour<neighbour.gCost){
+                    closedNodes.remove(neighbour);
+                }
 
                 //Check to see if new path is better
-                if(newCostToNeighbour<neighbour.gCost){
+                if(!neighbourInList(closedNodes, neighbour)&&!neighbourInList(openNodes, neighbour)){
                     //updates values of neighbour to shorter distances
                     neighbour.gCost=newCostToNeighbour;
                     neighbour.hCost=getDistance(neighbour, endNode);
                     neighbour.parent=currentNode;
-
-                    //If not on open list, add it to open list and set g and h costs and assign parent
-                    if(!neighbourInList(openNodes, neighbour)) {
-                        openNodes.add(neighbour);
-                    }
+                    openNodes.add(neighbour);
                 }
             }
             //Previous node is used to assign parent node of end node when end node is reached
             previousNode = currentNode;
         }
 
+        System.out.println("returning null for end of algorithm");
+        return null;
     }
 
     private ArrayList<Node> getNeighbours(char[][] map, int row, int elementPosition, ArrayList<Node> closedNodes){
@@ -76,22 +99,22 @@ public class AStarSearch{
         //Checks adjacent positions to the input position, ensuring it hasn't already been explored (closed nodes)
 
         //checks north
-        if (map[row][elementPosition - 1] != '#' && !closedNodes.contains(new Node(row, elementPosition - 1))) {
-                neighbours.add(new Node(row, elementPosition - 1));
+        if (map[row-1][elementPosition] != '#' && map[row-1][elementPosition] != '?'&&!closedNodes.contains(new Node(row-1, elementPosition))) {
+                neighbours.add(new Node(row-1, elementPosition));
             }
 
         //checks east
-        if (map[row][elementPosition + 1] != 1 && !closedNodes.contains(new Node(row, elementPosition + 1))) {
+        if (map[row][elementPosition + 1] != '#' && map[row][elementPosition + 1] != '?' && !closedNodes.contains(new Node(row, elementPosition + 1))) {
                 neighbours.add(new Node(row, elementPosition+1));
             }
 
         //checks south
-        if (map[row + 1][elementPosition] != 1 && !closedNodes.contains(new Node(row + 1, elementPosition))) {
+        if (map[row + 1][elementPosition] != '#' && map[row + 1][elementPosition] != '?'&&!closedNodes.contains(new Node(row + 1, elementPosition))) {
                 neighbours.add(new Node(row+1, elementPosition));
         }
 
         //checks west
-        if (map[row][elementPosition - 1] != 1 && !closedNodes.contains(new Node(row, elementPosition - 1))) {
+        if (map[row][elementPosition - 1] != '#' && map[row][elementPosition - 1] != '?'&& !closedNodes.contains(new Node(row, elementPosition - 1))) {
             neighbours.add(new Node( row, elementPosition - 1));
         }
         return neighbours;
@@ -103,16 +126,33 @@ public class AStarSearch{
 
     //Method that continually adds parent node to a list starting from end node and working to start node
     //list is then reversed to create a list of all nodes visited in the path from start to end
-    private ArrayList<Node> retracePath(Node startNode, Node endNode){
-        ArrayList<Node> path = new ArrayList<>();
+    private ArrayList<String> retraceMoves(Node startNode, Node endNode){
+        ArrayList<String> listOfMoves = new ArrayList<String>();
         Node currentNode = endNode;
         while (currentNode!=startNode){
-            path.add(currentNode);
-            currentNode=currentNode.parent;
 
+            //if move south
+            if(currentNode.row==currentNode.parent.row+1){
+                listOfMoves.add("MOVE S");
+            }
+            else if(currentNode.row==currentNode.parent.row-1){
+                listOfMoves.add("MOVE N");
+            }
+            else if(currentNode.elementPosition==currentNode.parent.elementPosition+1){
+                listOfMoves.add("MOVE E");
+            }
+            else if(currentNode.elementPosition==currentNode.parent.elementPosition-1){
+                listOfMoves.add("MOVE W");
+            }
+            currentNode=currentNode.parent;
         }
-        Collections.reverse(path);
-        return path;
+        Collections.reverse(listOfMoves);
+
+        ArrayList<String> listOfMovesAsQueue = new ArrayList<>();
+        for (String move:listOfMoves) {
+            listOfMovesAsQueue.add(move);
+        }
+        return listOfMovesAsQueue;
     }
 
     private boolean neighbourInList(ArrayList <Node> list, Node neighbour){

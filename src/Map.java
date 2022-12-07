@@ -161,6 +161,7 @@ public class Map {
                     setPlayerPosition(new int[]{row,elementPos},player);
                     //Checks to make sure that human and bot are not starting in same position, if they are finds a new starting position for the player
                     if(humanPlayerPosition==botPlayerPosition){
+                        System.out.println("error");
                         calculatePlayerStartingPoint(player);
                     }
                     return;
@@ -189,7 +190,7 @@ public class Map {
         char[][] localMap = new char[5][5];
 
         int[] activePlayerPosition = this.getActivePlayerPosition(player);
-        int[] currentCoordinate = new int[2];
+        int[] currentCoordinate;
         for(int row=0; row<5;row++){
             for (int elementPos=0; elementPos<5;elementPos++) {
 
@@ -209,7 +210,7 @@ public class Map {
     }
 
     public char[][] createHiddenMap(){
-        char[][] unhiddenMap = new char[horizontalMapDimension][verticalMapDimension];
+        char[][] unhiddenMap = new char[verticalMapDimension][horizontalMapDimension];
         for (char[] row: unhiddenMap)
             Arrays.fill(row, '?');
         return unhiddenMap;
@@ -296,7 +297,17 @@ public class Map {
     public void printMap(char[][] map) {
         for(int row=0; row<map.length;row++){
             for(int elementPos = 0; elementPos<map[0].length;elementPos++){
-                System.out.print(map[row][elementPos]);
+
+                if (Arrays.equals(new int[]{row, elementPos}, humanPlayerPosition)) {
+                    System.out.print('P');
+                }
+                else if (Arrays.equals(new int[]{row, elementPos}, botPlayerPosition)) {
+                    System.out.print('B');
+                }
+                else{
+                    System.out.print(map[row][elementPos]);
+                }
+
             }
             System.out.println();
         }
