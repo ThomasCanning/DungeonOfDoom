@@ -32,8 +32,8 @@ public abstract class Player {
     }
 
     //Moves player by 1 position in chosen direction if adjacent position is valid, if not valid prints fail
-    public void move(Map mapObject, char direction){
-        mapObject.movePlayer(this, direction);
+    public boolean move(Map mapObject, char direction){
+        return mapObject.movePlayer(this, direction);
     }
     
     public boolean quit(Map mapObject, Scanner scanner){

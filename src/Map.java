@@ -41,7 +41,7 @@ public class Map {
     private void chooseMap() {
 
         //String used to add "maps/" to start of file name when file object created if a maps subdirectory exists
-        String directory="";
+        String directory;
 
         //Checks if a maps subdirectory exists, and if it does prints of each map in that directory
         if(Files.exists(Path.of("maps"))){
@@ -57,7 +57,7 @@ public class Map {
             File folder = new File("src");
             File[] listOfFiles = folder.listFiles();
             for (File listOfFile : listOfFiles) {
-                if(listOfFile.getName().substring(listOfFile.getName().length() - 4).equals(".txt")&&!listOfFile.getName().equals("README.txt")){
+                if(listOfFile.getName().endsWith(".txt")&&!listOfFile.getName().equals("README.txt")){
                     System.out.println(listOfFile.getName());
                 }
             }
@@ -69,7 +69,7 @@ public class Map {
         String chosenMap = scanner.nextLine();
 
         //If player leaves .txt of end of map name, adds it for them
-        if(!chosenMap.substring(chosenMap.length() - 4).equals(".txt")){
+        if(!chosenMap.endsWith(".txt")){
             chosenMap = chosenMap+".txt";
         }
 
@@ -156,19 +156,24 @@ public class Map {
         int iteratedThroughValidPositions = 0;
         for (int row = 0; row < verticalMapDimension; row++) {
             for (int elementPos = 0; elementPos < horizontalMapDimension; elementPos++) {
+
+                //Increase iteratedThroughValidPositions if element is path(.) or exit(E)
+                if(map[row][elementPos]=='.'||map[row][elementPos]=='E'){
+                    iteratedThroughValidPositions++;
+                }
+
                 //If the number of valid positions looked at == the randomly generated valid position, then chose that position in array as starting position
                 if(iteratedThroughValidPositions==randomValidPosition){
                     setPlayerPosition(new int[]{row,elementPos},player);
+
                     //Checks to make sure that human and bot are not starting in same position, if they are finds a new starting position for the player
                     if(humanPlayerPosition==botPlayerPosition){
                         System.out.println("error");
                         calculatePlayerStartingPoint(player);
                     }
+
+                    System.out.println(row+" start pos "+elementPos);
                     return;
-                }
-                //Only increase iteratedThroughValidPositions if element is path(.) or exit(E)
-                else if(map[row][elementPos]=='.'||map[row][elementPos]=='E'){
-                    iteratedThroughValidPositions++;
                 }
             }
         }
@@ -210,10 +215,10 @@ public class Map {
     }
 
     public char[][] createHiddenMap(){
-        char[][] unhiddenMap = new char[verticalMapDimension][horizontalMapDimension];
-        for (char[] row: unhiddenMap)
+        char[][] hiddenMap = new char[verticalMapDimension][horizontalMapDimension];
+        for (char[] row: hiddenMap)
             Arrays.fill(row, '?');
-        return unhiddenMap;
+        return hiddenMap;
     }
 
     private int[] getActivePlayerPosition(Player player){
@@ -227,8 +232,9 @@ public class Map {
         return activePlayerPosition;
     }
 
-    public void movePlayer(Player player, char direction) {
+    public boolean movePlayer(Player player, char direction) {
         int[] activePlayerPosition=getActivePlayerPosition(player);
+        boolean successfullMove = true;
         switch(direction){
             case 'N':
                 if(this.map[activePlayerPosition[0]-1][activePlayerPosition[1]]!='#'){
@@ -237,6 +243,7 @@ public class Map {
                 }
                 else{
                     System.out.println("Fail");
+                    successfullMove = false;
                 }
                 break;
 
@@ -247,6 +254,7 @@ public class Map {
                 }
                 else{
                     System.out.println("Fail");
+                    successfullMove = false;
                 }
                 break;
 
@@ -257,6 +265,7 @@ public class Map {
                 }
                 else{
                     System.out.println("Fail");
+                    successfullMove = false;
                 }
                 break;
 
@@ -267,14 +276,17 @@ public class Map {
                 }
                 else{
                     System.out.println("Fail");
+                    successfullMove = false;
                 }
                 break;
 
             default:
                 System.out.println("Fail");
+                successfullMove = false;
 
         }
         this.setPlayerPosition(activePlayerPosition, player);
+        return successfullMove;
     }
 
     public boolean attemptQuit(Player player) {
@@ -284,12 +296,10 @@ public class Map {
     }
 
     public char[][] updateExploredMap(char[][] exploredMap, char[][] mapUncoveredByLook) {
-        for (int row = 0; row < 5; row++) {
-            for (int elementPos = 0; elementPos <5; elementPos++) {
 
-                //Iterates through each position in the 5x5 area surrounding bot and adds to the total uncovered map
-                exploredMap[botPlayerPosition[0] - 2+row][botPlayerPosition[1] - 2+elementPos] = mapUncoveredByLook[row][elementPos];
-            }
+        for (int row = 0; row < 5; row++) {
+            //Iterates through each position in the 5x5 area surrounding bot and adds to the total uncovered map
+            System.arraycopy(mapUncoveredByLook[row], 0, exploredMap[botPlayerPosition[0] - 2 + row], botPlayerPosition[1] - 2, 5);
         }
         return exploredMap;
     }
@@ -298,18 +308,38 @@ public class Map {
         for(int row=0; row<map.length;row++){
             for(int elementPos = 0; elementPos<map[0].length;elementPos++){
 
-                if (Arrays.equals(new int[]{row, elementPos}, humanPlayerPosition)) {
-                    System.out.print('P');
-                }
-                else if (Arrays.equals(new int[]{row, elementPos}, botPlayerPosition)) {
-                    System.out.print('B');
-                }
-                else{
-                    System.out.print(map[row][elementPos]);
-                }
+                System.out.print(map[row][elementPos]);
 
             }
             System.out.println();
         }
+    }
+
+    public void checkIfPlayerCaught() {
+        if(humanPlayerPosition==botPlayerPosition){
+            System.out.println("LOSE");
+            System.out.println("You were caught by the bot!");
+            System.exit(0);
+        }
+    }
+
+    //Look in each of the 4 directions surrounding the bot and adds the ones which aren't blocked by a wall to a list
+    public ArrayList<String> getClearDirections(Player player) {
+        ArrayList<String> directionOptions = new ArrayList<>();
+        int[] activePlayerPosition = getActivePlayerPosition(player);
+        //Checks both positions north of bot
+        if(map[activePlayerPosition[0]-1][activePlayerPosition[1]]=='.' && map[activePlayerPosition[0]-2][activePlayerPosition[1]]=='.'){
+            directionOptions.add("Move N");
+        }
+        if(map[activePlayerPosition[0]][activePlayerPosition[1]+1]=='.' && map[activePlayerPosition[0]][activePlayerPosition[1]+1]=='.'){
+            directionOptions.add("Move E");
+        }
+        if(map[activePlayerPosition[0]+1][activePlayerPosition[1]]=='.' && map[activePlayerPosition[0]+2][activePlayerPosition[1]]=='.'){
+            directionOptions.add("Move S");
+        }
+        if(map[activePlayerPosition[0]][activePlayerPosition[1]-1]=='.' && map[activePlayerPosition[0]][activePlayerPosition[1]-2]=='.'){
+            directionOptions.add("Move W");
+        }
+        return directionOptions;
     }
 }

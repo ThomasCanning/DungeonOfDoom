@@ -58,6 +58,8 @@ public class GameLogic {
         }
         humanPlayer.incrementSteps();
 
+        mapObject.checkIfPlayerCaught();
+
         bot.takeTurn(mapObject);
 
         //Continuously processes player input through recursion

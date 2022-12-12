@@ -3,7 +3,8 @@ import java.util.Collections;
 
 public class AStarSearch{
 
-    public ArrayList GetPathTo(char[][] map, char target){
+    public ArrayList getPathTo(char[][] map, char target){
+
         //Creates an array list open nodes that represents the frontier of nodes being considered
         ArrayList<Node> openNodes =new ArrayList<>();
 
@@ -11,14 +12,14 @@ public class AStarSearch{
         Node endNode = null;
 
         //Finds position of bot and target within map and creates start and end node objects
-        //which have row and elementPosition attributes and other attributes relating to A* search
+        //Adds the target to an array list in case there are multiple targets
         for(int row=0; row< map.length;row++){
             for(int elementPosition = 0; elementPosition<map[0].length;elementPosition++){
                 if(map[row][elementPosition]=='B'){
                     startNode = new Node(row,elementPosition);
                 }
                 if(map[row][elementPosition]==target){
-                    endNode = new Node(row,elementPosition);
+                    endNode = new Node(row, elementPosition);
                 }
             }
         }
@@ -38,7 +39,6 @@ public class AStarSearch{
         Node previousNode = null;
 
         while(openNodes.size()>0){ //Iteratively uses A* algorithm to find the shortest path between startPosition and endPosition
-            System.out.println("iterating A*");
             currentNode=openNodes.get(0);
 
             //Searches through open nodes for one with lowest f cost to assign as current node
@@ -57,8 +57,7 @@ public class AStarSearch{
             if(currentNode.row==endNode.row&&currentNode.elementPosition==endNode.elementPosition){
                 //What happens when reached end point
                 endNode.parent=previousNode;
-                ArrayList<String> listOfMoves = retraceMoves(startNode, previousNode);
-                System.out.println("A* success?");
+                ArrayList<String> listOfMoves = retraceMoves(startNode, endNode);
                 return listOfMoves;
             }
 
@@ -127,7 +126,7 @@ public class AStarSearch{
     //Method that continually adds parent node to a list starting from end node and working to start node
     //list is then reversed to create a list of all nodes visited in the path from start to end
     private ArrayList<String> retraceMoves(Node startNode, Node endNode){
-        ArrayList<String> listOfMoves = new ArrayList<String>();
+        ArrayList<String> listOfMoves = new ArrayList<>();
         Node currentNode = endNode;
         while (currentNode!=startNode){
 
@@ -149,9 +148,7 @@ public class AStarSearch{
         Collections.reverse(listOfMoves);
 
         ArrayList<String> listOfMovesAsQueue = new ArrayList<>();
-        for (String move:listOfMoves) {
-            listOfMovesAsQueue.add(move);
-        }
+        listOfMovesAsQueue.addAll(listOfMoves);
         return listOfMovesAsQueue;
     }
 
