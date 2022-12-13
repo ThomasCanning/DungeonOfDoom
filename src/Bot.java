@@ -70,7 +70,7 @@ public class Bot extends Player {
 
             else if (lookForItem('G') != null) {
                 System.out.println("looking for gold");
-                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(),search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'E'));
+                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(),search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'G'));
                 commandsInQueue.add("PICKUP");
                 commandsInQueue.add("LOOK");
 
@@ -118,8 +118,7 @@ public class Bot extends Player {
                 //If bot cant move because of wall, clear the queue of commands and make next move a look
                 if(!this.move(mapObject, command.charAt(command.length() - 1))){
                     commandsInQueue.clear();
-                    commandsInQueue.add("LOOK");
-                    movesSinceLastLook=0;
+                    changeDirection(mapObject);
                 }
                 //If move successful
                 else {
@@ -150,9 +149,7 @@ public class Bot extends Player {
 
         //If bot is approaching wall or somewhere it has already explored, then change direction
         if(mapObject.checkIfTowardsWall(directionOfCurrentMovement)||mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap)){
-            System.out.println("Change direction");
-            System.out.println(mapObject.checkIfTowardsWall(directionOfCurrentMovement)+" "+mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap));
-            changeDirection();
+            changeDirection(mapObject);
         }
     }
 
@@ -167,7 +164,12 @@ public class Bot extends Player {
         return null;
     }
 
-    private void changeDirection() {
+    private void changeDirection(Map mapObject) {
+
+        System.out.println("Change direction");
+        System.out.println(directionOfCurrentMovement);
+        System.out.println(mapObject.checkIfTowardsWall(directionOfCurrentMovement)+" "+mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap));
+
         //Changes directionOfCurrentMovement to next clockwise direction
         switch (directionOfCurrentMovement) {
             case "MOVE N":

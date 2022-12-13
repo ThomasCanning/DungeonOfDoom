@@ -380,6 +380,8 @@ public class Map {
 
     //checks the row or column just outside of the 5x5 map around player, and it hasn't yet been fully explored, returns false
     public boolean checkIfTowardsExplored(String movementDirection, char[][] exploredMap) {
+        //If bot has already decided it's at a wall, return true to avoid index out of bounds error at edge of map
+        if(checkIfTowardsWall(movementDirection))return true;
         char[] column;
         //Runs the checkIfWall method on the corresponding direcion, if direction is E or W then gets the column in respective direction and passes that to checkIfWall
         switch(movementDirection){
@@ -389,18 +391,18 @@ public class Map {
                 }
                 break;
             case "MOVE E":
-                column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]+3);
+                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]+3);
                 if(this.checkIfSameTile(column,'?')){
                     return false;
                 }
                 break;
             case "MOVE S":
-                if(this.checkIfSameTile(map[botPlayerPosition[0]+3],'?')){
+                if(this.checkIfSameTile(exploredMap[botPlayerPosition[0]+3],'?')){
                     return false;
                 }
                 break;
             case "MOVE W":
-                column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]-3);
+                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]-3);
                 if(this.checkIfSameTile(column,'?')){
                     return false;
                 }
@@ -411,14 +413,12 @@ public class Map {
 
     //Checks through every element in an array and returns true if they are all equal to a '#' wall element
     private boolean checkIfSameTile(char[] map, char tile){
-        boolean isWall = true;
         for (char element:map) {
             if(element!=tile){
-                isWall=false;
-                return isWall;
+                return false;
             }
         }
-        return isWall;
+        return true;
     }
 
     private char[] getColumn(char[][] map, int[] playerPosition, int columnIndex){
