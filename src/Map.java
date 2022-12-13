@@ -320,6 +320,7 @@ public class Map {
     }
 
     public void checkIfPlayerCaught() {
+        System
         if(humanPlayerPosition==botPlayerPosition){
             System.out.println("LOSE");
             System.out.println("You were caught by the bot!");
@@ -328,20 +329,19 @@ public class Map {
     }
 
     //Look in each of the 4 directions surrounding the bot and adds the ones which aren't blocked by a wall to a list
-    public String getRandomClearDirection(Player player) {
+    public String getRandomClearDirection(char[][] map) {
         ArrayList<String> directionOptions = new ArrayList<>();
-        int[] activePlayerPosition = getActivePlayerPosition(player);
         //Checks both positions north of bot
-        if(map[activePlayerPosition[0]-1][activePlayerPosition[1]]=='.' && map[activePlayerPosition[0]-2][activePlayerPosition[1]]=='.'){
+        if(map[1][2]=='.' && map[0][2]=='.'){
             directionOptions.add("MOVE N");
         }
-        if(map[activePlayerPosition[0]][activePlayerPosition[1]+1]=='.' && map[activePlayerPosition[0]][activePlayerPosition[1]+1]=='.'){
+        if(map[2][3]=='.' && map[2][4]=='.'){
             directionOptions.add("MOVE E");
         }
-        if(map[activePlayerPosition[0]+1][activePlayerPosition[1]]=='.' && map[activePlayerPosition[0]+2][activePlayerPosition[1]]=='.'){
+        if(map[3][2]=='.' && map[4][2]=='.'){
             directionOptions.add("MOVE S");
         }
-        if(map[activePlayerPosition[0]][activePlayerPosition[1]-1]=='.' && map[activePlayerPosition[0]][activePlayerPosition[1]-2]=='.'){
+        if(map[2][1]=='.' && map[2][0]=='.'){
             directionOptions.add("MOVE W");
         }
         Random rand =new Random();

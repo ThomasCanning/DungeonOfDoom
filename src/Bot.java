@@ -13,14 +13,13 @@ public class Bot extends Player {
     private boolean readyToExit = false;
 
     private int movesSinceLastLook = 0;
-    private String directionOfCurrentMovement;
+    private String directionOfCurrentMovement = null;
 
     public Bot(Map mapObject) {
         super(mapObject);
         exploredMap = mapObject.createHiddenMap();
         this.botPosition = mapObject.getBotPlayerPosition();
         this.search = new AStarSearch();
-        this.directionOfCurrentMovement = mapObject.getRandomClearDirection(this);
         commandsInQueue = new ArrayList<>();
         //The bot should always do look as it's first move
         commandsInQueue.add("LOOK");
@@ -55,7 +54,9 @@ public class Bot extends Player {
                 commandsInQueue.add("LOOK");
             }
 
-            else if(getGoldCollected()>=goldRequiredToWin){
+            //If bot has enough gold to win, assuming gold required to win is known, then move exit and quit
+            //If no exit has been found, toggle the boolean readyToExit and when an exit is found, use it
+            else if(getGoldCollected()>=goldRequiredToWin && goldRequiredToWin !=-1){
                 //If bot has collected enough gold, bot knows to quit at next oppourtunity
                 readyToExit = true;
                 //If bot already knows where an exit is, then moves to it and quits
@@ -85,6 +86,7 @@ public class Bot extends Player {
             //If nothing else, continue moving in the current direction of movement
             else{
                 commandsInQueue.add(directionOfCurrentMovement);
+                System.out.println(commandsInQueue.get(0));
             }
         }
 
@@ -140,6 +142,11 @@ public class Bot extends Player {
     @Override
     public void look (Map mapObject){
         exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
+
+        if(directionOfCurrentMovement==null){
+            this.directionOfCurrentMovement = mapObject.getRandomClearDirection(mapObject.createMapAroundPlayer(this));
+        }
+
         //If bot is approaching wall or somewhere it has already explored, then change direction
         if(mapObject.checkIfTowardsWall(directionOfCurrentMovement)||mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap)){
             changeDirection();
