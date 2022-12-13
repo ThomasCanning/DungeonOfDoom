@@ -301,6 +301,8 @@ public class Map {
 
     public char[][] updateExploredMap(char[][] exploredMap, char[][] mapUncoveredByLook) {
 
+        exploredMap[botPlayerPosition[0]][botPlayerPosition[1]]=map[botPlayerPosition[0]][botPlayerPosition[1]];
+
         for (int row = 0; row < 5; row++) {
             //Iterates through each position in the 5x5 area surrounding bot and adds to the total uncovered map
             System.arraycopy(mapUncoveredByLook[row], 0, exploredMap[botPlayerPosition[0] - 2 + row], botPlayerPosition[1] - 2, 5);
@@ -333,16 +335,16 @@ public class Map {
         int[] activePlayerPosition = getActivePlayerPosition(player);
         //Checks both positions north of bot
         if(map[activePlayerPosition[0]-1][activePlayerPosition[1]]=='.' && map[activePlayerPosition[0]-2][activePlayerPosition[1]]=='.'){
-            directionOptions.add("Move N");
+            directionOptions.add("MOVE N");
         }
         if(map[activePlayerPosition[0]][activePlayerPosition[1]+1]=='.' && map[activePlayerPosition[0]][activePlayerPosition[1]+1]=='.'){
-            directionOptions.add("Move E");
+            directionOptions.add("MOVE E");
         }
         if(map[activePlayerPosition[0]+1][activePlayerPosition[1]]=='.' && map[activePlayerPosition[0]+2][activePlayerPosition[1]]=='.'){
-            directionOptions.add("Move S");
+            directionOptions.add("MOVE S");
         }
         if(map[activePlayerPosition[0]][activePlayerPosition[1]-1]=='.' && map[activePlayerPosition[0]][activePlayerPosition[1]-2]=='.'){
-            directionOptions.add("Move W");
+            directionOptions.add("MOVE W");
         }
         Random rand =new Random();
         int randomValidPosition = rand.nextInt(directionOptions.size());
@@ -362,23 +364,23 @@ public class Map {
         char[] column;
         //checks the row or column at the edge of the 5x5 map around player, and if they are all wall tiles in the chosen direction, returns true
         switch(movementDirection){
-            case "Move N":
+            case "MOVE N":
                 if(this.checkIfSameTile(map[botPlayerPosition[0]-2],'#')){
                     return true;
                 }
                 break;
-            case "Move E":
+            case "MOVE E":
                 column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]+2);
                 if(this.checkIfSameTile(column,'#')){
                     return true;
                 }
                 break;
-            case "Move S":
+            case "MOVE S":
                 if(this.checkIfSameTile(map[botPlayerPosition[0]+2],'#')){
                     return true;
                 }
                 break;
-            case "Move W":
+            case "MOVE W":
                 column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]-2);
                 if(this.checkIfSameTile(column,'#')){
                     return true;
@@ -393,23 +395,23 @@ public class Map {
         char[] column;
         //Runs the checkIfWall method on the corresponding direcion, if direction is E or W then gets the column in respective direction and passes that to checkIfWall
         switch(movementDirection){
-            case "Move N":
+            case "MOVE N":
                 if(this.checkIfSameTile(exploredMap[botPlayerPosition[0]-3],'?')){
                     return false;
                 }
                 break;
-            case "Move E":
+            case "MOVE E":
                 column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]+3);
                 if(this.checkIfSameTile(column,'?')){
                     return false;
                 }
                 break;
-            case "Move S":
+            case "MOVE S":
                 if(this.checkIfSameTile(map[botPlayerPosition[0]+3],'?')){
                     return false;
                 }
                 break;
-            case "Move W":
+            case "MOVE W":
                 column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]-3);
                 if(this.checkIfSameTile(column,'?')){
                     return false;
@@ -432,9 +434,9 @@ public class Map {
     }
 
     private char[] getColumn(char[][] map, int[] playerPosition, int columnIndex){
-        char[] column = new char[5]; // Here I assume a rectangular 2D array!
-        for(int i=playerPosition[1]-2; i<=playerPosition[1]+2; i++){
-            column[i] = map[i][columnIndex];
+        char[] column = new char[5];
+        for(int i=0; i<5; i++){
+            column[i] = map[playerPosition[0]-2+i][columnIndex];
         }
         return column;
     }

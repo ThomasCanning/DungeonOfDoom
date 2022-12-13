@@ -95,6 +95,8 @@ public class Bot extends Player {
             System.out.println(command);
         }
 
+        System.out.println("Moves since last look: "+movesSinceLastLook);
+
         String command = commandsInQueue.get(0);
         commandsInQueue.remove(0);
         switch (command) {
