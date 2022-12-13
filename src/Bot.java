@@ -50,7 +50,8 @@ public class Bot extends Player {
         if (commandsInQueue.isEmpty()) {
             if (lookForItem('P') != null) {
                 System.out.println("looking for player");
-                commandsInQueue = search.getPathTo(exploredMap, 'P');
+                //Gets a list of moves from player current position to the player
+                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'P'));
                 commandsInQueue.add("LOOK");
             }
 
@@ -62,14 +63,14 @@ public class Bot extends Player {
                 //If bot already knows where an exit is, then moves to it and quits
                 if(lookForItem('E')!=null){
                     System.out.println("Moving to exit");
-                    commandsInQueue = search.getPathTo(exploredMap, 'E');
+                    commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'E'));
                     commandsInQueue.add("QUIT");
                 }
             }
 
             else if (lookForItem('G') != null) {
                 System.out.println("looking for gold");
-                commandsInQueue = search.getPathTo(exploredMap, 'G');
+                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(),search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'E'));
                 commandsInQueue.add("PICKUP");
                 commandsInQueue.add("LOOK");
 

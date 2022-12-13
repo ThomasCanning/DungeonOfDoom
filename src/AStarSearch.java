@@ -3,25 +3,43 @@ import java.util.Collections;
 
 public class AStarSearch{
 
-    public ArrayList getPathTo(char[][] map, char target){
+    public int[] getPositionOfTarget(char[][] map, int[] startPosition, char target){
+
+        ArrayList<int[]> possibleTargetPositions = new ArrayList<>();
+
+        for(int row=0; row< map.length;row++){
+            for(int elementPosition = 0; elementPosition<map[0].length;elementPosition++){
+                //If element at each position of the map is a given char, add it to a list of possible target positions
+                if(map[row][elementPosition]==target){
+                    possibleTargetPositions.add(new int[]{row,elementPosition});
+                }
+            }
+        }
+        //If there is only one possible target, return its position
+        if(possibleTargetPositions.size()==1){
+            return possibleTargetPositions.get(0);
+        }
+        //If there is more than one possible target, chose the target which takes the smallest number of moves to reach
+        else{
+            int[] chosenTarget = possibleTargetPositions.get(0);
+            int currentShortestPathlength = 999;
+            for (int[] possibleTarget :possibleTargetPositions) {
+                if(getPathTo(map, startPosition, possibleTarget).size()<currentShortestPathlength){
+                    currentShortestPathlength=getPathTo(map, startPosition, possibleTarget).size();
+                    chosenTarget = possibleTarget;
+                }
+            }
+            return chosenTarget;
+        }
+    }
+
+    public ArrayList getPathTo(char[][] map, int[] startPosition, int[] endPosition){
 
         //Creates an array list open nodes that represents the frontier of nodes being considered
         ArrayList<Node> openNodes =new ArrayList<>();
 
-        Node startNode = null;
-        Node endNode = null;
-
-        //Finds position of bot and target within map and creates start and end node objects
-        for(int row=0; row< map.length;row++){
-            for(int elementPosition = 0; elementPosition<map[0].length;elementPosition++){
-                if(map[row][elementPosition]=='B'){
-                    startNode = new Node(row,elementPosition);
-                }
-                if(map[row][elementPosition]==target){
-                    endNode = new Node(row, elementPosition);
-                }
-            }
-        }
+        Node startNode = new Node(startPosition[0],startPosition[1]);
+        Node endNode = new Node(endPosition[0],endPosition[1]);
 
         if(startNode==null || endNode==null){
             System.out.println("returning null for bad start/end");
