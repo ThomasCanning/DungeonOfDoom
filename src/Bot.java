@@ -149,6 +149,8 @@ public class Bot extends Player {
 
         //If bot is approaching wall or somewhere it has already explored, then change direction
         if(mapObject.checkIfTowardsWall(directionOfCurrentMovement)||mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap)){
+            System.out.println("Change direction");
+            System.out.println(mapObject.checkIfTowardsWall(directionOfCurrentMovement)+" "+mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap));
             changeDirection();
         }
     }

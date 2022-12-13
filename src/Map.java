@@ -320,8 +320,8 @@ public class Map {
     }
 
     public void checkIfPlayerCaught() {
-        System
-        if(humanPlayerPosition==botPlayerPosition){
+        System.out.println("Checking for caught");
+        if(humanPlayerPosition[0]==botPlayerPosition[0]&&humanPlayerPosition[1]==botPlayerPosition[1]){
             System.out.println("LOSE");
             System.out.println("You were caught by the bot!");
             System.exit(0);

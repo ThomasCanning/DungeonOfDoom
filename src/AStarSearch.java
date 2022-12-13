@@ -12,7 +12,6 @@ public class AStarSearch{
         Node endNode = null;
 
         //Finds position of bot and target within map and creates start and end node objects
-        //Adds the target to an array list in case there are multiple targets
         for(int row=0; row< map.length;row++){
             for(int elementPosition = 0; elementPosition<map[0].length;elementPosition++){
                 if(map[row][elementPosition]=='B'){
