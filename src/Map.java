@@ -37,6 +37,10 @@ public class Map {
         return goldRequiredToWin;
     }
 
+    public int[] getBotPlayerPosition() {
+        return botPlayerPosition;
+    }
+
    //Gets user input to chose map text file, and converts it to a 2D char array
     private void chooseMap() {
 

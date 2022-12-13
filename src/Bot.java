@@ -3,6 +3,7 @@ import java.util.ArrayList;
 public class Bot extends Player {
 
     private char[][] exploredMap;
+    private int[] botPosition;
     private int goldRequiredToWin;
 
     private AStarSearch search;
@@ -17,6 +18,7 @@ public class Bot extends Player {
     public Bot(Map mapObject) {
         super(mapObject);
         exploredMap = mapObject.createHiddenMap();
+        this.botPosition = mapObject.getBotPlayerPosition();
         this.search = new AStarSearch();
         commandsInQueue = new ArrayList<>();
         goldRequiredToWin = -1;
@@ -154,6 +156,24 @@ public class Bot extends Player {
             }
         }
         return null;
+    }
+
+    private void changeDirection(){
+        //Changes directionOfCurrentMovement to next clockwise direction
+        switch (directionOfCurrentMovement){
+            case "MOVE N":
+                directionOfCurrentMovement="MOVE E";
+                break;
+            case "MOVE E":
+                directionOfCurrentMovement="MOVE S";
+                break;
+            case "MOVE S":
+                directionOfCurrentMovement="MOVE W";
+                break;
+            case "MOVE W":
+                directionOfCurrentMovement="MOVE N";
+                break;
+        }
     }
 
     private boolean checkIfTowardsExplored(){
