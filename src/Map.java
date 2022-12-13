@@ -175,8 +175,6 @@ public class Map {
                         System.out.println("error");
                         calculatePlayerStartingPoint(player);
                     }
-
-                    System.out.println(row+" start pos "+elementPos);
                     return;
                 }
             }
@@ -347,17 +345,7 @@ public class Map {
             directionOptions.add("MOVE W");
         }
         Random rand =new Random();
-        int randomValidPosition = rand.nextInt(directionOptions.size());
-        System.out.println(randomValidPosition);
-         randomValidPosition = rand.nextInt(directionOptions.size());
-        System.out.println(randomValidPosition);
-         randomValidPosition = rand.nextInt(directionOptions.size());
-        System.out.println(randomValidPosition);
-         randomValidPosition = rand.nextInt(directionOptions.size());
-        System.out.println(randomValidPosition);
-         randomValidPosition = rand.nextInt(directionOptions.size());
-        System.out.println(randomValidPosition);
-        return directionOptions.get(randomValidPosition);
+        return directionOptions.get(rand.nextInt(directionOptions.size()));
     }
 
     public boolean checkIfTowardsWall(String movementDirection) {
@@ -442,4 +430,15 @@ public class Map {
     }
 
 
+    public void removeBotFromMap(char[][] exploredMap) {
+        for (int row = 0; row < verticalMapDimension; row++) {
+            for (int elementPos = 0; elementPos < horizontalMapDimension; elementPos++) {
+
+                //Increase iteratedThroughValidPositions if element is path(.) or exit(E)
+                if (exploredMap[row][elementPos] == 'B') {
+                    exploredMap[row][elementPos] = '.';
+                }
+            }
+        }
+    }
 }

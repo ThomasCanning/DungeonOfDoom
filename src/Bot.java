@@ -54,6 +54,18 @@ public class Bot extends Player {
                 commandsInQueue = search.getPathTo(exploredMap, 'P');
                 commandsInQueue.add("LOOK");
             }
+
+            else if(getGoldCollected()>=goldRequiredToWin){
+                //If bot has collected enough gold, bot knows to quit at next oppourtunity
+                readyToExit = true;
+                //If bot already knows where an exit is, then moves to it and quits
+                if(lookForItem('E')!=null){
+                    System.out.println("Moving to exit");
+                    commandsInQueue = search.getPathTo(exploredMap, 'E');
+                    commandsInQueue.add("QUIT");
+                }
+            }
+
             else if (lookForItem('G') != null) {
                 System.out.println("looking for gold");
                 commandsInQueue = search.getPathTo(exploredMap, 'G');
@@ -61,19 +73,8 @@ public class Bot extends Player {
                 commandsInQueue.add("LOOK");
 
                 //If bot doesn't already know how much gold is required to win, find out after first gold collected
-                if(goldRequiredToWin!=-1){
+                if (goldRequiredToWin == -1) {
                     commandsInQueue.add("HELLO");
-                }
-
-                else if(getGoldCollected()>=goldRequiredToWin){
-                    //If bot has collected enough gold, bot knows to quit at next oppourtunity
-                    readyToExit = true;
-                    //If bot already knows where an exit is, then moves to it and quits
-                    if(lookForItem('E')!=null){
-                        System.out.println("Moving to exit");
-                        commandsInQueue = search.getPathTo(exploredMap, 'E');
-                        commandsInQueue.add("QUIT");
-                    }
                 }
             }
 
@@ -85,9 +86,7 @@ public class Bot extends Player {
             else{
                 commandsInQueue.add(directionOfCurrentMovement);
             }
-
-            steps++;
-            }
+        }
 
         //Once there is something in the queue, execute the next command in queue
         System.out.println("commands are in queue");
@@ -117,8 +116,14 @@ public class Bot extends Player {
                 if(!this.move(mapObject, command.charAt(command.length() - 1))){
                     commandsInQueue.clear();
                     commandsInQueue.add("LOOK");
+                    movesSinceLastLook=0;
                 }
-                movesSinceLastLook++;
+                //If move successful
+                else {
+                    mapObject.removeBotFromMap(this.exploredMap);
+                    //If bot is moving blindly and not towards a target, increment movesSinceLastLook
+                    if (commandsInQueue.size() == 0) movesSinceLastLook++;
+                }
                 break;
             case "LOOK":
                 this.look(mapObject);
