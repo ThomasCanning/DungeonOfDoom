@@ -328,7 +328,7 @@ public class Map {
     }
 
     //Look in each of the 4 directions surrounding the bot and adds the ones which aren't blocked by a wall to a list
-    public ArrayList<String> getClearDirections(Player player) {
+    public String getRandomClearDirection(Player player) {
         ArrayList<String> directionOptions = new ArrayList<>();
         int[] activePlayerPosition = getActivePlayerPosition(player);
         //Checks both positions north of bot
@@ -344,44 +344,86 @@ public class Map {
         if(map[activePlayerPosition[0]][activePlayerPosition[1]-1]=='.' && map[activePlayerPosition[0]][activePlayerPosition[1]-2]=='.'){
             directionOptions.add("Move W");
         }
-        return directionOptions;
+        Random rand =new Random();
+        int randomValidPosition = rand.nextInt(directionOptions.size());
+        System.out.println(randomValidPosition);
+         randomValidPosition = rand.nextInt(directionOptions.size());
+        System.out.println(randomValidPosition);
+         randomValidPosition = rand.nextInt(directionOptions.size());
+        System.out.println(randomValidPosition);
+         randomValidPosition = rand.nextInt(directionOptions.size());
+        System.out.println(randomValidPosition);
+         randomValidPosition = rand.nextInt(directionOptions.size());
+        System.out.println(randomValidPosition);
+        return directionOptions.get(randomValidPosition);
     }
 
-    public boolean checkIfTowardsWall(Player player, String movementDirection) {
-        int[] activePlayerPosition = getActivePlayerPosition(player);
+    public boolean checkIfTowardsWall(String movementDirection) {
         char[] column;
-        //Runs the checkIfWall method on the corresponding direcion, if direction is E or W then gets the column in respective direction and passes that to checkIfWall
+        //checks the row or column at the edge of the 5x5 map around player, and if they are all wall tiles in the chosen direction, returns true
         switch(movementDirection){
             case "Move N":
-                if(this.checkIfWall(map[activePlayerPosition[0]-2])){
+                if(this.checkIfSameTile(map[botPlayerPosition[0]-2],'#')){
                     return true;
                 }
                 break;
             case "Move E":
-                column = this.getColumn(map, activePlayerPosition, activePlayerPosition[1]+2);
-                if(this.checkIfWall(column)){
+                column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]+2);
+                if(this.checkIfSameTile(column,'#')){
                     return true;
                 }
                 break;
             case "Move S":
-                if(this.checkIfWall(map[activePlayerPosition[0]+2])){
+                if(this.checkIfSameTile(map[botPlayerPosition[0]+2],'#')){
                     return true;
                 }
                 break;
             case "Move W":
-                column = this.getColumn(map, activePlayerPosition, activePlayerPosition[1]-2);
-                if(this.checkIfWall(column)){
+                column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]-2);
+                if(this.checkIfSameTile(column,'#')){
                     return true;
                 }
                 break;
         }
         return false;
     }
+
+    //checks the row or column just outside of the 5x5 map around player, and it hasn't yet been fully explored, returns false
+    public boolean checkIfTowardsExplored(String movementDirection, char[][] exploredMap) {
+        char[] column;
+        //Runs the checkIfWall method on the corresponding direcion, if direction is E or W then gets the column in respective direction and passes that to checkIfWall
+        switch(movementDirection){
+            case "Move N":
+                if(this.checkIfSameTile(exploredMap[botPlayerPosition[0]-3],'?')){
+                    return false;
+                }
+                break;
+            case "Move E":
+                column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]+3);
+                if(this.checkIfSameTile(column,'?')){
+                    return false;
+                }
+                break;
+            case "Move S":
+                if(this.checkIfSameTile(map[botPlayerPosition[0]+3],'?')){
+                    return false;
+                }
+                break;
+            case "Move W":
+                column = this.getColumn(map, botPlayerPosition, botPlayerPosition[1]-3);
+                if(this.checkIfSameTile(column,'?')){
+                    return false;
+                }
+                break;
+        }
+        return true;
+    }
+
     //Checks through every element in an array and returns true if they are all equal to a '#' wall element
-    private boolean checkIfWall(char[] map){
+    private boolean checkIfSameTile(char[] map, char tile){
         boolean isWall = true;
         for (char element:map) {
-            if(element!='#'){
+            if(element!=tile){
                 isWall=false;
                 return isWall;
             }
@@ -396,4 +438,6 @@ public class Map {
         }
         return column;
     }
+
+
 }

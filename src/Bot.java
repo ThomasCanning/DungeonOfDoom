@@ -12,15 +12,18 @@ public class Bot extends Player {
 
     private boolean readyToExit = false;
 
-    private boolean timeToLook = true;
-    private String directionOfCurrentMovement = null;
+    private int movesSinceLastLook = 0;
+    private String directionOfCurrentMovement;
 
     public Bot(Map mapObject) {
         super(mapObject);
         exploredMap = mapObject.createHiddenMap();
         this.botPosition = mapObject.getBotPlayerPosition();
         this.search = new AStarSearch();
+        this.directionOfCurrentMovement = mapObject.getRandomClearDirection(this);
         commandsInQueue = new ArrayList<>();
+        //The bot should always do look as it's first move
+        commandsInQueue.add("LOOK");
         goldRequiredToWin = -1;
     }
 
@@ -43,23 +46,6 @@ public class Bot extends Player {
 
 
         */
-
-        //Decides if direction of movement needs to be updated, or initialised if not done yet
-        //Work out what direction to start moving in if initial direction hasn't yet been decided
-        if(directionOfCurrentMovement==null){
-            ArrayList<String> directionOptions;
-            directionOptions = mapObject.getClearDirections(this);
-            //Generates a random number between 0 and the number of directions that are not blocked by walls
-            int randomNumber = (int)Math.random() * directionOptions.size();
-            directionOfCurrentMovement=directionOptions.get(randomNumber);
-        }
-        else{
-            //If bot is walking towards what is likely a wall, or an area that is already explored, then change direction
-            if(mapObject.checkIfTowardsWall(this, directionOfCurrentMovement)||this.checkIfTowardsExplored(this)){
-
-            }
-        }
-
 
         //If there is nothing in the queue of commands, work out what to add to queue
         if (commandsInQueue.isEmpty()) {
@@ -91,7 +77,7 @@ public class Bot extends Player {
                 }
             }
 
-            else if(timeToLook) {
+            else if(movesSinceLastLook>=5){
                 commandsInQueue.add("LOOK");
             }
 
@@ -130,9 +116,11 @@ public class Bot extends Player {
                     commandsInQueue.clear();
                     commandsInQueue.add("LOOK");
                 }
+                movesSinceLastLook++;
                 break;
             case "LOOK":
                 this.look(mapObject);
+                movesSinceLastLook=0;
                 break;
             case "QUIT":
                 mapObject.attemptQuit(this);
@@ -145,6 +133,10 @@ public class Bot extends Player {
     @Override
     public void look (Map mapObject){
         exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
+        //If bot is approaching wall or somewhere it has already explored, then change direction
+        if(mapObject.checkIfTowardsWall(directionOfCurrentMovement)||mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap)){
+            changeDirection();
+        }
     }
 
     private int[] lookForItem (char item){
@@ -158,26 +150,22 @@ public class Bot extends Player {
         return null;
     }
 
-    private void changeDirection(){
+    private void changeDirection() {
         //Changes directionOfCurrentMovement to next clockwise direction
-        switch (directionOfCurrentMovement){
+        switch (directionOfCurrentMovement) {
             case "MOVE N":
-                directionOfCurrentMovement="MOVE E";
+                directionOfCurrentMovement = "MOVE E";
                 break;
             case "MOVE E":
-                directionOfCurrentMovement="MOVE S";
+                directionOfCurrentMovement = "MOVE S";
                 break;
             case "MOVE S":
-                directionOfCurrentMovement="MOVE W";
+                directionOfCurrentMovement = "MOVE W";
                 break;
             case "MOVE W":
-                directionOfCurrentMovement="MOVE N";
+                directionOfCurrentMovement = "MOVE N";
                 break;
         }
-    }
-
-    private boolean checkIfTowardsExplored(){
-
     }
 
 }
