@@ -342,4 +342,54 @@ public class Map {
         }
         return directionOptions;
     }
+
+    public boolean checkIfTowardsWall(Player player, String movementDirection) {
+        int[] activePlayerPosition = getActivePlayerPosition(player);
+        char[] column;
+        //Runs the checkIfWall method on the corresponding direcion, if direction is E or W then gets the column in respective direction and passes that to checkIfWall
+        switch(movementDirection){
+            case "Move N":
+                if(this.checkIfWall(map[activePlayerPosition[0]-2])){
+                    return true;
+                }
+                break;
+            case "Move E":
+                column = this.getColumn(map, activePlayerPosition, activePlayerPosition[1]+2);
+                if(this.checkIfWall(column)){
+                    return true;
+                }
+                break;
+            case "Move S":
+                if(this.checkIfWall(map[activePlayerPosition[0]+2])){
+                    return true;
+                }
+                break;
+            case "Move W":
+                column = this.getColumn(map, activePlayerPosition, activePlayerPosition[1]-2);
+                if(this.checkIfWall(column)){
+                    return true;
+                }
+                break;
+        }
+        return false;
+    }
+    //Checks through every element in an array and returns true if they are all equal to a '#' wall element
+    private boolean checkIfWall(char[] map){
+        boolean isWall = true;
+        for (char element:map) {
+            if(element!='#'){
+                isWall=false;
+                return isWall;
+            }
+        }
+        return isWall;
+    }
+
+    private char[] getColumn(char[][] map, int[] playerPosition, int columnIndex){
+        char[] column = new char[5]; // Here I assume a rectangular 2D array!
+        for(int i=playerPosition[1]-2; i<=playerPosition[1]+2; i++){
+            column[i] = map[i][columnIndex];
+        }
+        return column;
+    }
 }
