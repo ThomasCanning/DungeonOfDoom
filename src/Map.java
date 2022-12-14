@@ -427,7 +427,7 @@ public class Map {
                     return false;
                 }
                 break;
-            case "MOVE S":#
+            case "MOVE S":
                 row = this.getRowAroundPosition(exploredMap, botPlayerPosition, botPlayerPosition[0]+2);
                 if(this.checkIfContainTile(row,'?')){
                     return false;
@@ -482,30 +482,26 @@ public class Map {
         switch(movementDirection){
             case "MOVE N":
                 if(map[botPlayerPosition[0]-1][botPlayerPosition[1]]=='#'){
-                    return false;
+                    return true;
                 }
                 break;
             case "MOVE E":
-                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]+2);
-                if(this.checkIfContainTile(column,'?')){
-                    return false;
+                if(map[botPlayerPosition[0]][botPlayerPosition[1]+1]=='#'){
+                    return true;
                 }
                 break;
-            case "MOVE S":#
-                row = this.getRowAroundPosition(exploredMap, botPlayerPosition, botPlayerPosition[0]+2);
-                if(this.checkIfContainTile(row,'?')){
-                    return false;
+            case "MOVE S":
+                if(map[botPlayerPosition[0]+1][botPlayerPosition[1]]=='#'){
+                    return true;
                 }
                 break;
             case "MOVE W":
-                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]-2);
-                if(this.checkIfContainTile(column,'?')){
-                    return false;
+                if(map[botPlayerPosition[0]][botPlayerPosition[1]-1]=='#'){
+                    return true;
                 }
                 break;
         }
-        return true;
-
+        return false;
     }
 
 

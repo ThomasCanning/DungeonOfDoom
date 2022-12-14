@@ -182,7 +182,7 @@ public class Bot extends Player {
         System.out.println(directionOfCurrentMovement);
 
         //Don't change the direction if the bot has already changed directions at this position before and bot not against a wall
-        if(this.checkForLoops(mapObject)&&!mapObject.checkIfTowardsWall(directionOfCurrentMovement)){
+        if(this.checkForLoops(mapObject)&&!mapObject.checkIfAdjacentToWall(exploredMap, directionOfCurrentMovement)){
             System.out.println("errro");
             return;
         }
