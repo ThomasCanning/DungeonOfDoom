@@ -473,6 +473,13 @@ public class Map {
         return true;
     }
 
+    public boolean checkIfDirectionClear(char[][] map, String direction, int[]position,int depth){
+        switch(direction){
+            case "MOVE N":
+
+        }
+    }
+
     //Checks through every element in an array and returns true if they are all equal to a '#' wall element
     private boolean checkIfSameTile(char[] map, char tile){
         for (char element:map) {

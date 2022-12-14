@@ -153,6 +153,8 @@ public class Bot extends Player {
             changeDirection(mapObject);
         }
 
+        else if(mapObject.c)
+
         exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
 
     }
