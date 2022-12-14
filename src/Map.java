@@ -157,7 +157,7 @@ public class Map {
     public void calculatePlayerStartingPoint(Player player){
         Random rand = new Random();
         int randomValidPosition = rand.nextInt(this.possibleStartingPlaces);
-        int iteratedThroughValidPositions = 0;
+        int iteratedThroughValidPositions = -1;
         for (int row = 0; row < verticalMapDimension; row++) {
             for (int elementPos = 0; elementPos < horizontalMapDimension; elementPos++) {
 
@@ -331,21 +331,50 @@ public class Map {
     //Look in each of the 4 directions surrounding the bot and adds the ones which aren't blocked by a wall to a list
     public String getRandomClearDirection(char[][] map) {
         ArrayList<String> directionOptions = new ArrayList<>();
-        //Checks both positions north of bot
-        if(map[1][2]=='.' && map[0][2]=='.'){
+
+        //Checks the 2 positions in each direction from bot within the 5x5 area, if clear adds to direction options
+        if(map[1][2]!='#' && map[0][2]!='#'){
             directionOptions.add("MOVE N");
         }
-        if(map[2][3]=='.' && map[2][4]=='.'){
+        if(map[2][3]!='#' && map[2][4]!='#'){
             directionOptions.add("MOVE E");
         }
-        if(map[3][2]=='.' && map[4][2]=='.'){
+        if(map[3][2]!='#' && map[4][2]!='#'){
             directionOptions.add("MOVE S");
         }
-        if(map[2][1]=='.' && map[2][0]=='.'){
+        if(map[2][1]!='#' && map[2][0]!='#'){
             directionOptions.add("MOVE W");
         }
-        Random rand =new Random();
-        return directionOptions.get(rand.nextInt(directionOptions.size()));
+        //If at least 1 of the 4 directions is clear for 2 positions, then pick one of them randomly
+        if(directionOptions.size()>0) {
+            Random rand = new Random();
+            return directionOptions.get(rand.nextInt(directionOptions.size()));
+        }
+        //If there are no directions with 2 positions clear, then repeats each direction check but only for 1 square
+        else{
+            //Checks the directly adjacent position in each direction from bot within the 5x5 area, if clear adds to direction options
+            if(map[1][2]!='#'){
+                directionOptions.add("MOVE N");
+            }
+            if(map[2][3]!='#'){
+                directionOptions.add("MOVE E");
+            }
+            if(map[3][2]!='#'){
+                directionOptions.add("MOVE S");
+            }
+            if(map[2][1]!='#'){
+                directionOptions.add("MOVE W");
+            }
+            //If some positions are clear, chose 1 randomly and return it
+            if(directionOptions.size()>0) {
+                Random rand = new Random();
+                return directionOptions.get(rand.nextInt(directionOptions.size()));
+            }
+
+        }
+
+        System.out.println("Bot is stuck in 1x1 area");
+        return "MOVE N";
     }
 
     public boolean checkIfTowardsWall(String movementDirection) {
@@ -383,27 +412,30 @@ public class Map {
         //If bot has already decided it's at a wall, return true to avoid index out of bounds error at edge of map
         if(checkIfTowardsWall(movementDirection))return true;
         char[] column;
-        //Runs the checkIfWall method on the corresponding direcion, if direction is E or W then gets the column in respective direction and passes that to checkIfWall
+        char[] row;
+        //Runs the checkIfWall method on the corresponding direction, if direction is E or W then gets the column in respective direction and passes that to checkIfWall
         switch(movementDirection){
             case "MOVE N":
-                if(this.checkIfSameTile(exploredMap[botPlayerPosition[0]-3],'?')){
+                row = this.getRowAroundPosition(exploredMap, botPlayerPosition, botPlayerPosition[0]-2);
+                if(this.checkIfContainTile(row,'?')){
                     return false;
                 }
                 break;
             case "MOVE E":
-                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]+3);
-                if(this.checkIfSameTile(column,'?')){
+                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]+2);
+                if(this.checkIfContainTile(column,'?')){
                     return false;
                 }
                 break;
-            case "MOVE S":
-                if(this.checkIfSameTile(exploredMap[botPlayerPosition[0]+3],'?')){
+            case "MOVE S":#
+                row = this.getRowAroundPosition(exploredMap, botPlayerPosition, botPlayerPosition[0]+2);
+                if(this.checkIfContainTile(row,'?')){
                     return false;
                 }
                 break;
             case "MOVE W":
-                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]-3);
-                if(this.checkIfSameTile(column,'?')){
+                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]-2);
+                if(this.checkIfContainTile(column,'?')){
                     return false;
                 }
                 break;
@@ -421,12 +453,59 @@ public class Map {
         return true;
     }
 
+    private boolean checkIfContainTile(char[] map, char tile){
+        for (char element:map) {
+            if(element==tile){
+                return true;
+            }
+        }
+        return false;
+    }
+
     private char[] getColumn(char[][] map, int[] playerPosition, int columnIndex){
         char[] column = new char[5];
         for(int i=0; i<5; i++){
             column[i] = map[playerPosition[0]-2+i][columnIndex];
         }
         return column;
+    }
+
+    private char[] getRowAroundPosition(char[][] map, int[] playerPosition, int rowIndex){
+        char[] row = new char[5];
+        for(int i=0; i<5; i++){
+            row[i] = map[rowIndex][playerPosition[1]-2+i];
+        }
+        return row;
+    }
+
+    boolean checkIfAdjacentToWall(char[][] map, String movementDirection){
+        switch(movementDirection){
+            case "MOVE N":
+                if(map[botPlayerPosition[0]-1][botPlayerPosition[1]]=='#'){
+                    return false;
+                }
+                break;
+            case "MOVE E":
+                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]+2);
+                if(this.checkIfContainTile(column,'?')){
+                    return false;
+                }
+                break;
+            case "MOVE S":#
+                row = this.getRowAroundPosition(exploredMap, botPlayerPosition, botPlayerPosition[0]+2);
+                if(this.checkIfContainTile(row,'?')){
+                    return false;
+                }
+                break;
+            case "MOVE W":
+                column = this.getColumn(exploredMap, botPlayerPosition, botPlayerPosition[1]-2);
+                if(this.checkIfContainTile(column,'?')){
+                    return false;
+                }
+                break;
+        }
+        return true;
+
     }
 
 

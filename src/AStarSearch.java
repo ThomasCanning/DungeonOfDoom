@@ -24,7 +24,7 @@ public class AStarSearch{
             int[] chosenTarget = possibleTargetPositions.get(0);
             int currentShortestPathlength = 999;
             for (int[] possibleTarget :possibleTargetPositions) {
-                if(getPathTo(map, startPosition, possibleTarget).size()<currentShortestPathlength){
+                if(getPathTo(map, startPosition, possibleTarget).size()<currentShortestPathlength&&getPathTo(map, startPosition, possibleTarget).size()!=0){
                     currentShortestPathlength=getPathTo(map, startPosition, possibleTarget).size();
                     chosenTarget = possibleTarget;
                 }
@@ -42,8 +42,7 @@ public class AStarSearch{
         Node endNode = new Node(endPosition[0],endPosition[1]);
 
         if(startNode==null || endNode==null){
-            System.out.println("returning null for bad start/end");
-            return null;
+            return openNodes;
         }
 
         //Adds start position as a node to open nodes
