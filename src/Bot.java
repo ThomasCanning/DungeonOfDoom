@@ -14,6 +14,7 @@ public class Bot extends Player {
 
     private int movesSinceLastLook = 0;
     private String directionOfCurrentMovement = null;
+    private String directionOfPreviousMovement;
 
     private ArrayList<int[]> postionsWhereDirectionChanged = new ArrayList<>();
 
@@ -29,12 +30,6 @@ public class Bot extends Player {
     }
 
     public void takeTurn(Map mapObject) {
-
-        for (int[] positionDirectionChanged:postionsWhereDirectionChanged) {
-            System.out.println("print out");
-            System.out.println(positionDirectionChanged[0]);
-            System.out.println(positionDirectionChanged[1]);
-        }
 
         System.out.println("Bots turn:");
 
@@ -64,11 +59,8 @@ public class Bot extends Player {
             }
 
             //If bot has enough gold to win, assuming gold required to win is known, then move exit and quit
-            //If no exit has been found, toggle the boolean readyToExit and when an exit is found, use it
             else if(getGoldCollected()>=goldRequiredToWin && goldRequiredToWin !=-1){
-                //If bot has collected enough gold, bot knows to quit at next oppourtunity
-                readyToExit = true;
-                //If bot already knows where an exit is, then moves to it and quits
+                //If bot knows where an exit is, then moves to it and quits
                 if(lookForItem('E')!=null){
                     System.out.println("Moving to exit");
                     commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'E'));
@@ -126,7 +118,7 @@ public class Bot extends Player {
                 //If bot cant move because of wall, clear the queue of commands and make next move a look
                 if(!this.move(mapObject, command.charAt(command.length() - 1))){
                     commandsInQueue.clear();
-                    changeDirection(mapObject);
+                    commandsInQueue.add("LOOK");
                 }
                 //If move successful
                 else {
@@ -150,18 +142,18 @@ public class Bot extends Player {
     @Override
     public void look (Map mapObject){
 
-        if(directionOfCurrentMovement==null){
-            this.directionOfCurrentMovement = mapObject.getRandomClearDirection(mapObject.createMapAroundPlayer(this));
+        //Runs when look is used for the first time, or if bot is stuck against a '#' in order to get best direction
+        if(directionOfCurrentMovement==null||mapObject.checkIfAdjacentToWall(exploredMap, directionOfCurrentMovement)){
+            updateDirectionOfCurrentMovement(mapObject.choseNewDirection(mapObject.createMapAroundPlayer(this),directionOfCurrentMovement));
         }
 
-        //If bot is approaching wall or somewhere it has already explored, then change direction
+        //If bot is approaching wall of length 5, or somewhere it has already explored, then change direction
         //Checks if approaching somewhere explored by passing in direction and explored map before updating and seeing if the positions in the movement direction are already explored before doing look
-        if(mapObject.checkIfTowardsWall(directionOfCurrentMovement)||mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap)){
+        else if(mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap)||mapObject.checkIfTowardsWall(directionOfCurrentMovement)){
             changeDirection(mapObject);
         }
 
         exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
-
 
     }
 
@@ -181,7 +173,7 @@ public class Bot extends Player {
         System.out.println("Change direction");
         System.out.println(directionOfCurrentMovement);
 
-        //Don't change the direction if the bot has already changed directions at this position before and bot not against a wall
+        //Don't change the direction if the bot has already changed directions at this position before and bot not stuck against a wall
         if(this.checkForLoops(mapObject)&&!mapObject.checkIfAdjacentToWall(exploredMap, directionOfCurrentMovement)){
             System.out.println("errro");
             return;
@@ -190,22 +182,27 @@ public class Bot extends Player {
         //Changes directionOfCurrentMovement to next clockwise direction
         switch (directionOfCurrentMovement) {
             case "MOVE N":
-                directionOfCurrentMovement = "MOVE E";
+                updateDirectionOfCurrentMovement("MOVE E");
                 break;
             case "MOVE E":
-                directionOfCurrentMovement = "MOVE S";
+                updateDirectionOfCurrentMovement("MOVE S");
                 break;
             case "MOVE S":
-                directionOfCurrentMovement = "MOVE W";
+                updateDirectionOfCurrentMovement("MOVE W");
                 break;
             case "MOVE W":
-                directionOfCurrentMovement = "MOVE N";
+                updateDirectionOfCurrentMovement("MOVE N");
                 break;
         }
+
         //Keeps track of positions where direction has changed to avoid bot getting stuck in a loop
         postionsWhereDirectionChanged.add(mapObject.getBotPlayerPosition().clone());
 
+    }
 
+    private void updateDirectionOfCurrentMovement(String newDirection){
+        this.directionOfPreviousMovement = this.directionOfCurrentMovement;
+        this.directionOfCurrentMovement = newDirection;
     }
 
     //Returns true if the bot has previously done a direction change at this position, used to make sure bot doesn't end up in a loop
