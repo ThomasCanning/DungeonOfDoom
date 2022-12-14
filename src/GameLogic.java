@@ -44,7 +44,7 @@ public class GameLogic {
             case "MOVE S":
             case "MOVE W":
                 //Takes in map, humanPlayer, and a direction and movesma players position accordingly
-                humanPlayer.move(mapObject, Character.toUpperCase(command.charAt(command.length() - 1)));
+                humanPlayer.move(mapObject, command);
                 break;
             case "LOOK":
                 humanPlayer.look(mapObject);

@@ -17,11 +17,13 @@ public class Bot extends Player {
     private String directionOfPreviousMovement;
 
     private ArrayList<int[]> postionsWhereDirectionChanged = new ArrayList<>();
+    private ArrayList<int[]> previouslyVisitedPositions = new ArrayList<>();
 
     public Bot(Map mapObject) {
         super(mapObject);
         exploredMap = mapObject.createHiddenMap();
         this.botPosition = mapObject.getBotPlayerPosition();
+        previouslyVisitedPositions.add(botPosition);
         this.search = new AStarSearch();
         commandsInQueue = new ArrayList<>();
         //The bot should always do look as it's first move
@@ -54,51 +56,51 @@ public class Bot extends Player {
             if (lookForItem('P') != null) {
                 System.out.println("looking for player");
                 //Gets a list of moves from player current position to the player
-                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'P'));
+                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(), 'P'));
                 commandsInQueue.add("LOOK");
             }
 
             //If bot has enough gold to win, assuming gold required to win is known, then move exit and quit
-            else if(getGoldCollected()>=goldRequiredToWin && goldRequiredToWin !=-1){
+            else if (getGoldCollected() >= goldRequiredToWin && goldRequiredToWin != -1) {
                 //If bot knows where an exit is, then moves to it and quits
-                if(lookForItem('E')!=null){
+                if (lookForItem('E') != null) {
                     System.out.println("Moving to exit");
-                    commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'E'));
+                    commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(), 'E'));
                     commandsInQueue.add("QUIT");
                 }
-            }
-
-            else if (lookForItem('G') != null) {
+            } else if (lookForItem('G') != null) {
                 System.out.println("looking for gold");
-                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(),search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(),'G'));
-                commandsInQueue.add("PICKUP");
-                commandsInQueue.add("LOOK");
+                int[] targetPosition = search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(), 'G');
+                commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), targetPosition);
+                //If bot can't find a path to the gold, check the nearest explored positions to the gold to find the closest one that hasn't been visited yet, then move there and do look
+                if(commandsInQueue.size()==0){
+                    commandsInQueue=search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getClosestUnvisitedPosition(exploredMap, previouslyVisitedPositions, targetPosition));
+                }
+
+
+                if (commandsInQueue.size() > 0) {
+                    commandsInQueue.add("PICKUP");
+                    commandsInQueue.add("LOOK");
+                }
 
                 //If bot doesn't already know how much gold is required to win, find out after first gold collected
                 if (goldRequiredToWin == -1) {
                     commandsInQueue.add("HELLO");
                 }
             }
+        }
 
-            else if(movesSinceLastLook>=5){
+        //If still no commands have been added, continue moving in the current direction of movement, unless look is required then do look
+        if (commandsInQueue.isEmpty()){
+            if (movesSinceLastLook >= 5) {
                 commandsInQueue.add("LOOK");
             }
-
-            //If nothing else, continue moving in the current direction of movement
-            else{
+            else {
                 commandsInQueue.add(directionOfCurrentMovement);
-                System.out.println(commandsInQueue.get(0));
             }
         }
 
         //Once there is something in the queue, execute the next command in queue
-        System.out.println("commands are in queue");
-        for(String command:commandsInQueue){
-            System.out.println(command);
-        }
-
-        System.out.println("Moves since last look: "+movesSinceLastLook);
-
         String command = commandsInQueue.get(0);
         commandsInQueue.remove(0);
         switch (command) {
@@ -106,17 +108,14 @@ public class Bot extends Player {
                 goldRequiredToWin = mapObject.getGoldRequiredToWin();
                 break;
             case "PICKUP":
-                System.out.println("bot pickup");
                 this.pickup(mapObject);
                 break;
             case "MOVE N":
             case "MOVE E":
             case "MOVE S":
             case "MOVE W":
-                //Direction of move comes from last character in command
-                System.out.println("bot move");
                 //If bot cant move because of wall, clear the queue of commands and make next move a look
-                if(!this.move(mapObject, command.charAt(command.length() - 1))){
+                if(!this.move(mapObject, command)){
                     commandsInQueue.clear();
                     commandsInQueue.add("LOOK");
                 }
@@ -125,6 +124,7 @@ public class Bot extends Player {
                     mapObject.removeBotFromMap(this.exploredMap);
                     //If bot is moving blindly and not towards a target, increment movesSinceLastLook
                     if (commandsInQueue.size() == 0) movesSinceLastLook++;
+                    previouslyVisitedPositions.add(mapObject.getBotPlayerPosition());
                 }
                 break;
             case "LOOK":
@@ -144,7 +144,7 @@ public class Bot extends Player {
 
         //Runs when look is used for the first time, or if bot is stuck against a '#' in order to get best direction
         if(directionOfCurrentMovement==null||mapObject.checkIfAdjacentToWall(exploredMap, directionOfCurrentMovement)){
-            updateDirectionOfCurrentMovement(mapObject.choseNewDirection(mapObject.createMapAroundPlayer(this),directionOfCurrentMovement));
+            updateDirectionOfCurrentMovement(mapObject.choseNewDirection(mapObject.createMapAroundPlayer(this),directionOfCurrentMovement,previouslyVisitedPositions));
         }
 
         //If bot is approaching wall of length 5, or somewhere it has already explored, then change direction
@@ -153,7 +153,9 @@ public class Bot extends Player {
             changeDirection(mapObject);
         }
 
-        else if(mapObject.c)
+        else if(mapObject.checkIfDirectionClear(exploredMap, directionOfPreviousMovement, mapObject.getBotPlayerPosition(), 2)){
+            this.updateDirectionOfCurrentMovement(directionOfPreviousMovement);
+        }
 
         exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
 
@@ -172,12 +174,8 @@ public class Bot extends Player {
 
     private void changeDirection(Map mapObject) {
 
-        System.out.println("Change direction");
-        System.out.println(directionOfCurrentMovement);
-
         //Don't change the direction if the bot has already changed directions at this position before and bot not stuck against a wall
         if(this.checkForLoops(mapObject)&&!mapObject.checkIfAdjacentToWall(exploredMap, directionOfCurrentMovement)){
-            System.out.println("errro");
             return;
         }
 
@@ -203,6 +201,7 @@ public class Bot extends Player {
     }
 
     private void updateDirectionOfCurrentMovement(String newDirection){
+
         this.directionOfPreviousMovement = this.directionOfCurrentMovement;
         this.directionOfCurrentMovement = newDirection;
     }
@@ -210,12 +209,7 @@ public class Bot extends Player {
     //Returns true if the bot has previously done a direction change at this position, used to make sure bot doesn't end up in a loop
     private boolean checkForLoops(Map mapObject) {
         for (int[] positionDirectionChanged:postionsWhereDirectionChanged) {
-            System.out.println();
             if(positionDirectionChanged[0]==mapObject.getBotPlayerPosition()[0]&&positionDirectionChanged[1]==mapObject.getBotPlayerPosition()[1]){
-                System.out.println("positions:");
-                System.out.println(positionDirectionChanged[0]);
-                System.out.println(positionDirectionChanged[1]);
-
                 return true;
             }
         }

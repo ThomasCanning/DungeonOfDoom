@@ -234,61 +234,35 @@ public class Map {
         return activePlayerPosition;
     }
 
-    public boolean movePlayer(Player player, char direction) {
+    public boolean movePlayer(Player player, String direction) {
         int[] activePlayerPosition=getActivePlayerPosition(player);
         boolean successfullMove = true;
-        switch(direction){
-            case 'N':
-                if(this.map[activePlayerPosition[0]-1][activePlayerPosition[1]]!='#'){
+
+        if(checkIfDirectionClear(map,direction, activePlayerPosition, 1)){
+            switch (direction){
+                case "MOVE N":
                     activePlayerPosition[0]--;
-                    System.out.println("Success");
-                }
-                else{
-                    System.out.println("Fail");
-                    successfullMove = false;
-                }
-                break;
-
-            case 'E':
-                if(this.map[activePlayerPosition[0]][activePlayerPosition[1]+1]!='#'){
+                    break;
+                case "MOVE E":
                     activePlayerPosition[1]++;
-                    System.out.println("Success");
-                }
-                else{
-                    System.out.println("Fail");
-                    successfullMove = false;
-                }
-                break;
-
-            case 'S':
-                if(this.map[activePlayerPosition[0]+1][activePlayerPosition[1]]!='#'){
+                    break;
+                case "MOVE S":
                     activePlayerPosition[0]++;
-                    System.out.println("Success");
-                }
-                else{
-                    System.out.println("Fail");
-                    successfullMove = false;
-                }
-                break;
-
-            case 'W':
-                if(this.map[activePlayerPosition[0]][activePlayerPosition[1]-1]!='#'){
+                    break;
+                case "MOVE W":
                     activePlayerPosition[1]--;
-                    System.out.println("Success");
-                }
-                else{
-                    System.out.println("Fail");
-                    successfullMove = false;
-                }
-                break;
-
-            default:
-                System.out.println("Fail");
-                successfullMove = false;
+                    break;
+            }
+            System.out.println("Success");
+            this.setPlayerPosition(activePlayerPosition, player);
+            return true;
 
         }
-        this.setPlayerPosition(activePlayerPosition, player);
-        return successfullMove;
+
+        else{
+            System.out.println("Fail");
+            return false;
+        }
     }
 
     public boolean attemptQuit(Player player) {
@@ -320,7 +294,6 @@ public class Map {
     }
 
     public void checkIfPlayerCaught() {
-        System.out.println("Checking for caught");
         if(humanPlayerPosition[0]==botPlayerPosition[0]&&humanPlayerPosition[1]==botPlayerPosition[1]){
             System.out.println("LOSE");
             System.out.println("You were caught by the bot!");
@@ -329,7 +302,7 @@ public class Map {
     }
 
     //Look in each of the 4 directions surrounding the bot and returns the best depending on some rules
-    public String choseNewDirection(char[][] map, String currentDirection) {
+    public String choseNewDirection(char[][] map, String currentDirection, ArrayList<int[]> previouslyVisitedPositions) {
 
         //If bot is near a wall in a direction, bot checks 2 adjacent positions in direction clockwise from the direction of the wall
         //If they are both free, then returns the clear direction
@@ -343,17 +316,38 @@ public class Map {
          */
         //Checks if a wall is in column 1 place or 2 places west of bot, and if 2 positions north of bot are also clear
         //Also makes sure not to return the opposite direction to what the direction was before
-        if(currentDirection!="MOVE S"&&(checkIfSameTile(getColumn(map, new int[]{2,2}, 1),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 0),'#')) && map[1][2]!='#' && map[0][2]!='#'){
+        //Also makes sure to not chose a direction if the adjacent position in that direction has already been visited
+
+        //Each index represents if the adjacent position in each direction has been visited or not, in order {north, east, south, west}
+        boolean[] unvisitedDirections = {true,true,true,true};
+
+        for (int[] position:previouslyVisitedPositions){
+            if(position[0]==botPlayerPosition[0]-1&&position[1]==botPlayerPosition[1]){
+                unvisitedDirections[0]=false;
+            }
+            else if(position[0]==botPlayerPosition[0]&&position[1]==botPlayerPosition[1]+1){
+                unvisitedDirections[1]=false;
+            }
+            else if(position[0]==botPlayerPosition[0]+1&&position[1]==botPlayerPosition[1]){
+                unvisitedDirections[2]=false;
+            }
+            else if(position[0]==botPlayerPosition[0]&&position[1]==botPlayerPosition[1]-1){
+                unvisitedDirections[3]=false;
+            }
+        }
+        System.out.println(unvisitedDirections[0]+" "+unvisitedDirections[1]+" "+unvisitedDirections[2]+" "+unvisitedDirections[3]);
+
+        if(unvisitedDirections[0]&&currentDirection!="MOVE S"&&(checkIfSameTile(getColumn(map, new int[]{2,2}, 1),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 0),'#')) && map[1][2]!='#' && map[0][2]!='#'){
             return "MOVE N";
         }
         //Does same as before for all other direction
-        else if(currentDirection!="MOVE W"&&(checkIfSameTile(getRow(map, new int[]{2,2}, 1),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 0),'#')) && map[2][3]!='#' && map[2][4]!='#'){
+        else if(unvisitedDirections[1]&&currentDirection!="MOVE W"&&(checkIfSameTile(getRow(map, new int[]{2,2}, 1),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 0),'#')) && map[2][3]!='#' && map[2][4]!='#'){
             return "MOVE E";
         }
-        else if(currentDirection!="MOVE N"&&(checkIfSameTile(getColumn(map, new int[]{2,2}, 3),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 4),'#')) && map[3][2]!='#' && map[4][2]!='#'){
+        else if(unvisitedDirections[2]&&currentDirection!="MOVE N"&&(checkIfSameTile(getColumn(map, new int[]{2,2}, 3),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 4),'#')) && map[3][2]!='#' && map[4][2]!='#'){
             return "MOVE S";
         }
-        else if(currentDirection!="MOVE E"&&(checkIfSameTile(getRow(map, new int[]{2,2}, 3),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 4),'#')) && map[2][1]!='#' && map[2][0]!='#'){
+        else if(unvisitedDirections[3]&&currentDirection!="MOVE E"&&(checkIfSameTile(getRow(map, new int[]{2,2}, 3),'#')||checkIfSameTile(getColumn(map, new int[]{2,2}, 4),'#')) && map[2][1]!='#' && map[2][0]!='#'){
             return "MOVE W";
         }
 
@@ -361,16 +355,16 @@ public class Map {
         ArrayList<String> directionOptions = new ArrayList<>();
 
         //Checks the 2 positions in each direction from bot within the 5x5 area, if clear adds to direction options
-        if(currentDirection!="MOVE S"&&map[1][2]!='#' && map[0][2]!='#'){
+        if(unvisitedDirections[0]&&currentDirection!="MOVE S"&&map[1][2]!='#' && map[0][2]!='#'){
             directionOptions.add("MOVE N");
         }
-        if(currentDirection!="MOVE W"&&map[2][3]!='#' && map[2][4]!='#'){
+        if(unvisitedDirections[1]&&currentDirection!="MOVE W"&&map[2][3]!='#' && map[2][4]!='#'){
             directionOptions.add("MOVE E");
         }
-        if(currentDirection!="MOVE N"&&map[3][2]!='#' && map[4][2]!='#'){
+        if(unvisitedDirections[2]&&currentDirection!="MOVE N"&&map[3][2]!='#' && map[4][2]!='#'){
             directionOptions.add("MOVE S");
         }
-        if(currentDirection!="MOVE E"&&map[2][1]!='#' && map[2][0]!='#'){
+        if(unvisitedDirections[3]&&currentDirection!="MOVE E"&&map[2][1]!='#' && map[2][0]!='#'){
             directionOptions.add("MOVE W");
         }
 
@@ -383,16 +377,16 @@ public class Map {
         //If there are no directions with 2 positions clear, then repeats each direction check but only for 1 square
         else{
             //Checks the directly adjacent position in each direction from bot within the 5x5 area, if clear adds to direction options
-            if(currentDirection!="MOVE S"&&map[1][2]!='#'){
+            if(unvisitedDirections[0]&&currentDirection!="MOVE S"&&map[1][2]!='#'){
                 directionOptions.add("MOVE N");
             }
-            if(currentDirection!="MOVE W"&&map[2][3]!='#'){
+            if(unvisitedDirections[1]&&currentDirection!="MOVE W"&&map[2][3]!='#'){
                 directionOptions.add("MOVE E");
             }
-            if(currentDirection!="MOVE N"&&map[3][2]!='#'){
+            if(unvisitedDirections[2]&&currentDirection!="MOVE N"&&map[3][2]!='#'){
                 directionOptions.add("MOVE S");
             }
-            if(currentDirection!="MOVE E"&&map[2][1]!='#'){
+            if(unvisitedDirections[3]&&currentDirection!="MOVE E"&&map[2][1]!='#'){
                 directionOptions.add("MOVE W");
             }
             //If some positions are clear, chose 1 randomly and return it
@@ -474,10 +468,30 @@ public class Map {
     }
 
     public boolean checkIfDirectionClear(char[][] map, String direction, int[]position,int depth){
+        if(direction==null)return false;
         switch(direction){
             case "MOVE N":
-
+                for(int i=1;i<=depth;i++){
+                    if(map[position[0]-i][position[1]]=='#') return false;
+                }
+                break;
+            case "MOVE E":
+                for(int i=1;i<=depth;i++){
+                    if(map[position[0]][position[1]+i]=='#') return false;
+                }
+                break;
+            case "MOVE S":
+                for(int i=1;i<=depth;i++){
+                    if(map[position[0]+i][position[1]]=='#') return false;
+                }
+                break;
+            case "MOVE W":
+                for(int i=1;i<=depth;i++){
+                    if(map[position[0]][position[1]-i]=='#') return false;
+                }
+                break;
         }
+        return true;
     }
 
     //Checks through every element in an array and returns true if they are all equal to a '#' wall element
