@@ -3,14 +3,11 @@ import java.util.ArrayList;
 public class Bot extends Player {
 
     private char[][] exploredMap;
-    private int[] botPosition;
     private int goldRequiredToWin;
 
-    private AStarSearch search;
+    private final AStarSearch search;
 
     private ArrayList<String> commandsInQueue;
-
-    private boolean readyToExit = false;
 
     private int movesSinceLastLook = 0;
     private String directionOfCurrentMovement = null;
@@ -22,8 +19,7 @@ public class Bot extends Player {
     public Bot(Map mapObject) {
         super(mapObject);
         exploredMap = mapObject.createHiddenMap();
-        this.botPosition = mapObject.getBotPlayerPosition();
-        previouslyVisitedPositions.add(botPosition);
+        previouslyVisitedPositions.add(mapObject.getBotPlayerPosition());
         this.search = new AStarSearch();
         commandsInQueue = new ArrayList<>();
         //The bot should always do look as it's first move
