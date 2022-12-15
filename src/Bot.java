@@ -72,11 +72,6 @@ public class Bot extends Player {
                 System.out.println("looking for gold");
                 int[] targetPosition = search.getPositionOfTarget(exploredMap, mapObject.getBotPlayerPosition(), 'G');
                 commandsInQueue = search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), targetPosition);
-                //If bot can't find a path to the gold, check the nearest explored positions to the gold to find the closest one that hasn't been visited yet, then move there and do look
-                if(commandsInQueue.size()==0){
-                    commandsInQueue=search.getPathTo(exploredMap, mapObject.getBotPlayerPosition(), search.getClosestUnvisitedPosition(exploredMap, previouslyVisitedPositions, targetPosition));
-                }
-
 
                 if (commandsInQueue.size() > 0) {
                     commandsInQueue.add("PICKUP");
@@ -145,19 +140,26 @@ public class Bot extends Player {
         //Runs when look is used for the first time, or if bot is stuck against a '#' in order to get best direction
         if(directionOfCurrentMovement==null||mapObject.checkIfAdjacentToWall(exploredMap, directionOfCurrentMovement)){
             updateDirectionOfCurrentMovement(mapObject.choseNewDirection(mapObject.createMapAroundPlayer(this),directionOfCurrentMovement,previouslyVisitedPositions));
+            System.out.println("run1");
         }
 
         //If bot is approaching wall of length 5, or somewhere it has already explored, then change direction
         //Checks if approaching somewhere explored by passing in direction and explored map before updating and seeing if the positions in the movement direction are already explored before doing look
         else if(mapObject.checkIfTowardsExplored(directionOfCurrentMovement, exploredMap)||mapObject.checkIfTowardsWall(directionOfCurrentMovement)){
             changeDirection(mapObject);
+            System.out.println("run2");
         }
 
         else if(mapObject.checkIfDirectionClear(exploredMap, directionOfPreviousMovement, mapObject.getBotPlayerPosition(), 2)){
             this.updateDirectionOfCurrentMovement(directionOfPreviousMovement);
+            //Overwrites direction of previous movement to stop bot going back to the direction it temporarily switched to
+            directionOfPreviousMovement=directionOfCurrentMovement;
+            System.out.println("run3");
         }
 
         exploredMap = mapObject.updateExploredMap(exploredMap, mapObject.createMapAroundPlayer(this));
+
+        System.out.println("direction: "+directionOfCurrentMovement);
 
     }
 

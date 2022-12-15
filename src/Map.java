@@ -34,8 +34,12 @@ public class Map {
     }
 
     public int getGoldRequiredToWin(){
-        return goldRequiredToWin;
+        return this.goldRequiredToWin;
     }
+
+    public int getVerticalMapDimension(){return this.verticalMapDimension;}
+
+    public int getHorizontalMapDimension(){return this.horizontalMapDimension;}
 
     public int[] getBotPlayerPosition() {
         return botPlayerPosition;

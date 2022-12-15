@@ -181,12 +181,6 @@ public class AStarSearch{
         return equals;
     }
 
-    public int[] getClosestUnvisitedPosition(char[][] exploredMap, ArrayList<int[]> previouslyVisitedPositions, int[] targetPosition) {
-        int minDepth=exploredMap[0].length;
-
-        for(int depth = 1; depth< )
-    }
-
     private class Node{
         int row;
         int elementPosition;
